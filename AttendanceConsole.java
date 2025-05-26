@@ -1,7 +1,6 @@
 package com.user.console;
-
 import com.user.dao.AttendanceDAO;
-import com.user.model.Attendance;
+import com.user.model.Attendance; 
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,7 +21,7 @@ public class AttendanceConsole {
             System.out.println("3. Exit");
 
             System.out.print("Your choice: ");
-            String choice = scanner.nextLine().trim(); // Added trim for safety
+            String choice = scanner.nextLine();
 
             switch (choice) {
                 case "1":
@@ -33,7 +32,6 @@ public class AttendanceConsole {
                     break;
                 case "3":
                     System.out.println("Exiting... Bye!");
-                    scanner.close(); // Close scanner to free resource
                     System.exit(0);
                 default:
                     System.out.println("Invalid choice! Please try again.");
@@ -42,46 +40,39 @@ public class AttendanceConsole {
     }
 
     private static void addAttendance() {
-        while (true) {
-            try {
-                System.out.print("Enter student name: ");
-                String name = scanner.nextLine().trim();
+        try {
+            System.out.print("Enter student name: ");
+            String name = scanner.nextLine().trim();
 
-                if (name.isEmpty()) {
-                    System.out.println("Student name cannot be empty.");
-                    continue; // Ask again
-                }
+            System.out.print("Enter date (yyyy-mm-dd): ");
+            String dateStr = scanner.nextLine().trim();
 
-                System.out.print("Enter date (yyyy-MM-dd): ");
-                String dateStr = scanner.nextLine().trim();
-                Date sqlDate = parseDate(dateStr);
-                if (sqlDate == null) {
-                    System.out.println("Invalid date format. Please use yyyy-MM-dd.");
-                    continue; // Ask again
-                }
-
-                System.out.print("Enter status (Present/Absent): ");
-                String status = scanner.nextLine().trim().toLowerCase();
-                if (!status.equals("present") && !status.equals("absent")) {
-                    System.out.println("Status must be either 'Present' or 'Absent'.");
-                    continue; // Ask again
-                }
-
-                Attendance attendance = new Attendance(name, sqlDate, capitalize(status));
-                boolean success = dao.addAttendance(attendance);
-
-                if (success) {
-                    System.out.println("✅ Attendance recorded successfully!");
-                } else {
-                    System.out.println("❌ Failed to record attendance.");
-                }
-
-                break; // Exit the addAttendance loop after successful entry
-
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
-                break;
+            // Validate date format
+            Date sqlDate = parseDate(dateStr);
+            if (sqlDate == null) {
+                System.out.println("Invalid date format.");
+                return;
             }
+
+            System.out.print("Enter status (Present/Absent): ");
+            String status = scanner.nextLine().trim();
+
+            if (!status.equalsIgnoreCase("Present") && !status.equalsIgnoreCase("Absent")) {
+                System.out.println("Status must be either 'Present' or 'Absent'.");
+                return;
+            }
+
+            Attendance attendance = new Attendance(name, sqlDate, capitalize(status));
+            boolean success = dao.addAttendance(attendance);
+
+            if (success) {
+                System.out.println("Attendance recorded successfully!");
+            } else {
+                System.out.println("Failed to record attendance.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
@@ -94,16 +85,16 @@ public class AttendanceConsole {
         }
 
         System.out.println("\nAttendance Records:");
-        System.out.println("ID | Student Name       | Date       | Status");
-        System.out.println("---------------------------------------------");
+        System.out.println("ID | Student Name | Date       | Status");
+        System.out.println("----------------------------------------");
 
         for (Attendance a : records) {
-            System.out.printf("%-3d| %-20s| %-10s | %s%n",
+            System.out.printf("%d  | %s | %s | %s%n",
                     a.getId(), a.getStudentName(), a.getDate(), a.getStatus());
         }
     }
 
-    // Helper: Convert string date to java.sql.Date
+    // Helper method to parse string date to java.sql.Date
     private static Date parseDate(String dateStr) {
         try {
             java.util.Date utilDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
@@ -113,9 +104,8 @@ public class AttendanceConsole {
         }
     }
 
-    // Helper: Capitalize first letter
     private static String capitalize(String str) {
         if (str == null || str.isEmpty()) return str;
         return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
     }
-}
+} 
