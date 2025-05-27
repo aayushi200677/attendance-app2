@@ -7,7 +7,7 @@ A simple Attendance Management System built using Java, MySQL, JDBC, and a (Cons
 - Add, update, and delete student records
 - Mark attendance for students
 - View attendance history
-- User-friendly GUI
+- User-friendly (Console Based)
 - MySQL database integration using JDBC
 
 ---
