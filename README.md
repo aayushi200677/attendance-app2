@@ -1,6 +1,6 @@
 # Attendance Management System
 
-A simple Attendance Management System built using Java, MySQL, JDBC, and a graphical user interface (GUI). This project allows administrators or teachers to manage student attendance records efficiently.
+A simple Attendance Management System built using Java, MySQL, JDBC, and a (Console Based). This project allows administrators or teachers to manage student attendance records efficiently.
 
 ## 🚀 Features
 
