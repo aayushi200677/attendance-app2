@@ -1,40 +1,33 @@
 package com.user.console;
+
 import com.user.dao.AttendanceDAO;
-import com.user.model.Attendance; 
+import com.user.model.Attendance;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class AttendanceConsole {
-    private static AttendanceDAO dao = new AttendanceDAO();
-    private static Scanner scanner = new Scanner(System.in);
+    private static final AttendanceDAO dao = new AttendanceDAO();
+    private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
-        System.out.println("=== Attendance Management System ===");
-
         while (true) {
-            System.out.println("\nChoose an option:");
+            System.out.println("\n=== Attendance Management System ===");
             System.out.println("1. Add Attendance");
             System.out.println("2. View All Attendance Records");
-            System.out.println("3. Exit");
+            System.out.println("3. Search by Student Name");
+            System.out.println("4. Delete Attendance by ID");
+            System.out.println("5. Exit");
+            System.out.print("Choose: ");
 
-            System.out.print("Your choice: ");
-            String choice = scanner.nextLine();
-
-            switch (choice) {
-                case "1":
-                    addAttendance();
-                    break;
-                case "2":
-                    viewAttendance();
-                    break;
-                case "3":
-                    System.out.println("Exiting... Bye!");
-                    System.exit(0);
-                default:
-                    System.out.println("Invalid choice! Please try again.");
+            switch (scanner.nextLine().trim()) {
+                case "1" -> addAttendance();
+                case "2" -> viewAttendance();
+                case "3" -> searchByName();
+                case "4" -> deleteAttendance();
+                case "5" -> System.exit(0);
+                default -> System.out.println("Invalid input.");
             }
         }
     }
@@ -43,33 +36,22 @@ public class AttendanceConsole {
         try {
             System.out.print("Enter student name: ");
             String name = scanner.nextLine().trim();
+            if (name.isEmpty()) {
+                System.out.println("Name cannot be empty."); return;
+            }
 
             System.out.print("Enter date (yyyy-mm-dd): ");
-            String dateStr = scanner.nextLine().trim();
-
-            // Validate date format
-            Date sqlDate = parseDate(dateStr);
-            if (sqlDate == null) {
-                System.out.println("Invalid date format.");
-                return;
-            }
+            Date date = parseDate(scanner.nextLine().trim());
+            if (date == null) return;
 
             System.out.print("Enter status (Present/Absent): ");
             String status = scanner.nextLine().trim();
-
             if (!status.equalsIgnoreCase("Present") && !status.equalsIgnoreCase("Absent")) {
-                System.out.println("Status must be either 'Present' or 'Absent'.");
-                return;
+                System.out.println("Invalid status."); return;
             }
 
-            Attendance attendance = new Attendance(name, sqlDate, capitalize(status));
-            boolean success = dao.addAttendance(attendance);
-
-            if (success) {
-                System.out.println("Attendance recorded successfully!");
-            } else {
-                System.out.println("Failed to record attendance.");
-            }
+            Attendance att = new Attendance(name, date, capitalize(status));
+            System.out.println(dao.addAttendance(att) ? "Attendance added." : "Failed to add.");
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -77,35 +59,44 @@ public class AttendanceConsole {
     }
 
     private static void viewAttendance() {
-        List<Attendance> records = dao.getAllAttendance();
-
-        if (records.isEmpty()) {
-            System.out.println("No attendance records found.");
-            return;
+        List<Attendance> list = dao.getAllAttendance();
+        if (list.isEmpty()) {
+            System.out.println("No records found."); return;
         }
+        System.out.println("ID | Student Name | Date | Status");
+        System.out.println("---------------------------------");
+        for (Attendance a : list) System.out.println(a);
+    }
 
-        System.out.println("\nAttendance Records:");
-        System.out.println("ID | Student Name | Date       | Status");
-        System.out.println("----------------------------------------");
+    private static void searchByName() {
+        System.out.print("Enter name to search: ");
+        String name = scanner.nextLine().trim();
+        List<Attendance> list = dao.getAttendanceByName(name);
+        if (list.isEmpty()) System.out.println("No records found.");
+        else list.forEach(System.out::println);
+    }
 
-        for (Attendance a : records) {
-            System.out.printf("%d  | %s | %s | %s%n",
-                    a.getId(), a.getStudentName(), a.getDate(), a.getStatus());
+    private static void deleteAttendance() {
+        try {
+            System.out.print("Enter ID to delete: ");
+            int id = Integer.parseInt(scanner.nextLine().trim());
+            System.out.println(dao.deleteById(id) ? "Deleted successfully." : "Delete failed.");
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid ID.");
         }
     }
 
-    // Helper method to parse string date to java.sql.Date
-    private static Date parseDate(String dateStr) {
+    private static Date parseDate(String input) {
         try {
-            java.util.Date utilDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+            java.util.Date utilDate = new SimpleDateFormat("yyyy-MM-dd").parse(input);
             return new Date(utilDate.getTime());
         } catch (ParseException e) {
+            System.out.println("Invalid date format.");
             return null;
         }
     }
 
-    private static String capitalize(String str) {
-        if (str == null || str.isEmpty()) return str;
-        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+    private static String capitalize(String s) {
+        return s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase();
     }
 }
