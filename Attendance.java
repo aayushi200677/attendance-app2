@@ -37,9 +37,3 @@ public class Attendance {
         return id + " | " + studentName + " | " + date + " | " + status;
     }
 }
-
-
-
-
-
-
